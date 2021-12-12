@@ -17,17 +17,17 @@ import javax.annotation.Nonnull;
 
 
 public class DiscordEventHandler extends ListenerAdapter {
-	
+
 	private static final Logger LOGGER = LogManager.getLogger( DiscordNet.class );
 	private static MinecraftServer server;
 	public static void setServer( MinecraftServer _server ) {
-		
+
 		server = _server;
 	}
-	
+
 	@Override
 	public void onGuildMessageReceived( @Nonnull GuildMessageReceivedEvent event ) {
-		
+
 		User author = event.getAuthor();
 		Member member = event.getMember();
 		if( isInitialized() && DiscordNet.feedBackAllowed( event.getChannel(), author ) ) {
@@ -49,14 +49,14 @@ public class DiscordEventHandler extends ListenerAdapter {
 			}
 		}
 	}
-	
+
 	private boolean isInitialized() {
-		
+
 		return server != null && DiscordNet.isInitialized();
 	}
-	
+
 	private boolean beginnsNotWithOtherCommandPrefix( String message ) {
-		
+
 		for( String prefix : ServerConfig.getOtherBotsCommandPrefixes() ) {
 			if( message.startsWith( prefix ) ) {
 				return false;
@@ -64,18 +64,18 @@ public class DiscordEventHandler extends ListenerAdapter {
 		}
 		return true;
 	}
-	
+
 	private void handleCommands( User author, String command ) {
-		
+
 		if( !author.isBot() ) {
 			if( !DiscordCommandHandler.handleCommand( command, server ) ) {
 				DiscordNet.sendFeedbackMessage( String.format( "%n%s%nError: Unknown Command", author.getName() ) );
 			}
 		}
 	}
-	
+
 	private void handleBotMessage( String message ) {
-		
+
 		if( ServerConfig.isTransmitBotMessages() ) {
 			if( !message.startsWith( DiscordNet.FEEDBACK_START ) || !message.endsWith( DiscordNet.FEEDBACK_END ) ) {
 				server.getPlayerList().broadcastMessage(
@@ -86,9 +86,9 @@ public class DiscordEventHandler extends ListenerAdapter {
 			}
 		}
 	}
-	
+
 	private void handleUserMessage( String author, String message ) {
-		
+
 		if( ServerConfig.getMaxCharCount() == -1 || message.length() <= ServerConfig.getMaxCharCount() ) {
 			server.getPlayerList().broadcastMessage(
 				new TextComponent( String.format(
@@ -99,8 +99,8 @@ public class DiscordEventHandler extends ListenerAdapter {
 				ChatType.CHAT,
 				Util.NIL_UUID
 			);
-			
-			LOGGER.info( "Message Sent: MC -> Discord" );
+
+			LOGGER.info( "Message Sent: Discord -> MC" );
 		} else {
 			DiscordNet.sendFeedbackMessage( String.format(
 				"%n%s%nError: Message to long.%n" +

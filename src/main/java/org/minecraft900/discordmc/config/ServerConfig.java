@@ -17,59 +17,59 @@ import java.util.List;
 private static final ForgeConfigSpec.LongValue _CHANNEL_ID;*/
 
 public class ServerConfig {
-	
-	
+
+
 	private static final Logger LOGGER = LogManager.getLogger( ServerConfig.class );
-	
+
 	private static final String MOD_NAME = ModLoadingContext.get().getActiveContainer().getModInfo().getDisplayName();
-	
+
 	private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-	
+
 	public static final ForgeConfigSpec CONFIG;
-	
+
 	private static final ForgeConfigSpec.BooleanValue ACTIVE;
 	private static final ForgeConfigSpec.ConfigValue<String> BOT_TOKEN;
 	private static final ForgeConfigSpec.ConfigValue<String> COMMAND_PREFIX;
 	private static final ForgeConfigSpec.BooleanValue USE_NICKNAME;
 	private static final ForgeConfigSpec.IntValue MAX_CHAR_COUNT;
-	
+
 	private static final ForgeConfigSpec.LongValue CHANNEL_ID;
 	private static final ForgeConfigSpec.LongValue PLAYER_ACTIONS_CHANNEL_ID;
 	private static final ForgeConfigSpec.LongValue ADVANCEMENTS_CHANNEL_ID;
 	private static final ForgeConfigSpec.LongValue PET_CHANNEL_ID;
-	
+
 	private static final ForgeConfigSpec.BooleanValue SERVER_STARTED_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> SERVER_STARTED_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue SERVER_STOPPED_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> SERVER_STOPPED_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue SERVER_CRASHED_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> SERVER_CRASHED_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue PLAYER_JOINED_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> PLAYER_JOINED_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue PLAYER_LEFT_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> PLAYER_LEFT_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue PLAYER_DIED_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> PLAYER_DIED_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue TAMED_MOB_DIED_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> TAMED_MOB_DIED_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue PLAYER_GOT_ADVANCEMENT_MESSAGE_ENABLED;
 	private static final ForgeConfigSpec.ConfigValue<String> PLAYER_GOT_ADVANCEMENT_MESSAGE;
-	
+
 	private static final ForgeConfigSpec.BooleanValue TRANSMIT_BOT_MESSAGES;
-	
+
 	private static final ForgeConfigSpec.ConfigValue<List<String>> OTHER_BOTS_COMMAND_PREFIXES;
-	
+
 	private static final ForgeConfigSpec.ConfigValue<List<? extends CommandConfig>> COMMANDS;
-	
+
 	static {
-		
+
 		ACTIVE = BUILDER.comment( "Should the Discord integration be active?" )
 			.define( "active", true );
 		BOT_TOKEN = BUILDER.comment( "Token of your Discord bot:" )
@@ -86,12 +86,12 @@ public class ServerConfig {
 			.push( "channels" );
 		CHANNEL_ID = BUILDER.comment( "Channel ID for where chat messages should be sent" )
 				.defineInRange( "channel_id", 0, 0, Long.MAX_VALUE );
+		PET_CHANNEL_ID = BUILDER.comment( "Channel ID for where pet death messages should be sent" )
+				.defineInRange( "pet_channel_id", 0, 0, Long.MAX_VALUE );
 		PLAYER_ACTIONS_CHANNEL_ID = BUILDER.comment( "Channel ID for where player related messages (Joins Quits Deaths) should be sent" )
 				.defineInRange( "player_actions_channel_id", 0, 0, Long.MAX_VALUE );
 		ADVANCEMENTS_CHANNEL_ID = BUILDER.comment( "Channel ID for where advancement messages should be sent" )
 				.defineInRange( "advancements_channel_id", 0, 0, Long.MAX_VALUE );
-		PET_CHANNEL_ID = BUILDER.comment( "Channel ID for where pet death messages should be sent" )
-				.defineInRange( "pet_channel_id", 0, 0, Long.MAX_VALUE );
 		BUILDER.pop();
 		BUILDER.comment( "Messages shown on Discord" )
 			.push( "messages" );
@@ -180,12 +180,12 @@ public class ServerConfig {
 		BUILDER.pop();
 		COMMANDS = BUILDER.comment( "Command mapping from Discord to Minecraft commands" )
 			.defineList( "commands", ServerConfig::buildDefaultCommandList, CommandConfig::isCorrect );
-		
+
 		CONFIG = BUILDER.build();
 	}
-	
+
 	private static List<CommandConfig> buildDefaultCommandList() {
-		
+
 		ArrayList<CommandConfig> commands = new ArrayList<>();
 		commands.add( new CommandConfig(
 			"difficulty",
@@ -263,15 +263,15 @@ public class ServerConfig {
 		}
 		return commands;
 	}
-	
+
 	public static void handleConfigEvent() {
-		
+
 		printConfig();
 		DiscordNet.init();
 	}
-	
+
 	private static void printConfig() {
-		
+
 		LOGGER.info( "Loading \"{}\" Server Config", MOD_NAME );
 		LOGGER.info( "{} = {}", ACTIVE.getPath(), ACTIVE.get() );
 		LOGGER.info( "{} = {}", BOT_TOKEN.getPath(), BOT_TOKEN.get() );
@@ -281,129 +281,129 @@ public class ServerConfig {
 		LOGGER.info( "{} = {}", COMMANDS.getPath(), COMMANDS.get() );
 		LOGGER.info( "\"{}\" Server Config loaded", MOD_NAME );
 	}
-	
+
 	public static boolean getActive() {
-		
+
 		return ACTIVE.get();
 	}
 	public static String getBotToken() {
-		
+
 		return BOT_TOKEN.get();
 	}
 	public static String getCommandPrefix() {
-		
+
 		return COMMAND_PREFIX.get();
 	}
 	public static boolean isUseNickname() {
-		
+
 		return USE_NICKNAME.get();
 	}
 	public static int getMaxCharCount() {
-		
+
 		return MAX_CHAR_COUNT.get();
 	}
-	
+
 	public static long getChannelId() {
-		
+
 		return CHANNEL_ID.get();
 	}
 	public static long getPlayerActionsChannelId() {
-		
+
 		return PLAYER_ACTIONS_CHANNEL_ID.get();
 	}
 	public static long getAdvancementsChannelId() {
-		
+
 		return ADVANCEMENTS_CHANNEL_ID.get();
 	}
 	public static long getPetChannelId() {
-		
+
 		return PET_CHANNEL_ID.get();
 	}
-	
+
 	public static boolean getServerStartedMessageEnabled() {
-		
+
 		return SERVER_STARTED_MESSAGE_ENABLED.get();
 	}
 	public static String getServerStartedMessage() {
-		
+
 		return SERVER_STARTED_MESSAGE.get();
 	}
-	
+
 	public static boolean getServerStoppedMessageEnabled() {
-		
+
 		return SERVER_STOPPED_MESSAGE_ENABLED.get();
 	}
 	public static String getServerStoppedMessage() {
-		
+
 		return SERVER_STOPPED_MESSAGE.get();
 	}
-	
+
 	public static boolean getServerCrashedMessageEnabled() {
-		
+
 		return SERVER_CRASHED_MESSAGE_ENABLED.get();
 	}
 	public static String getServerCrashedMessage() {
-		
+
 		return SERVER_CRASHED_MESSAGE.get();
 	}
-	
+
 	public static boolean getPlayerJoinedMessageEnabled() {
-		
+
 		return PLAYER_JOINED_MESSAGE_ENABLED.get();
 	}
 	public static String getPlayerJoinedMessage() {
-		
+
 		return PLAYER_JOINED_MESSAGE.get();
 	}
-	
+
 	public static boolean getPlayerLeftMessageEnabled() {
-		
+
 		return PLAYER_LEFT_MESSAGE_ENABLED.get();
 	}
 	public static String getPlayerLeftMessage() {
-		
+
 		return PLAYER_LEFT_MESSAGE.get();
 	}
-	
+
 	public static boolean getPlayerDiedMessageEnabled() {
-		
+
 		return PLAYER_DIED_MESSAGE_ENABLED.get();
 	}
 	public static String getPlayerDiedMessage() {
-		
+
 		return PLAYER_DIED_MESSAGE.get();
 	}
-	
+
 	public static boolean getTamedMobDiedMessageEnabled() {
-		
+
 		return TAMED_MOB_DIED_MESSAGE_ENABLED.get();
 	}
 	public static String getTamedMobDiedMessage() {
-		
+
 		return TAMED_MOB_DIED_MESSAGE.get();
 	}
-	
+
 	public static boolean getPlayerGotAdvancementMessageEnabled() {
-		
+
 		return PLAYER_GOT_ADVANCEMENT_MESSAGE_ENABLED.get();
 	}
 	public static String getPlayerGotAdvancementMessage() {
-		
+
 		return PLAYER_GOT_ADVANCEMENT_MESSAGE.get();
 	}
-	
+
 	public static boolean isTransmitBotMessages() {
-		
+
 		return TRANSMIT_BOT_MESSAGES.get();
 	}
-	
+
 	public static List<String> getOtherBotsCommandPrefixes() {
-		
+
 		return OTHER_BOTS_COMMAND_PREFIXES.get();
 	}
-	
+
 	public static List<? extends AbstractCommentedConfig> getCommands() {
-		
+
 		return COMMANDS.get();
 	}
 }

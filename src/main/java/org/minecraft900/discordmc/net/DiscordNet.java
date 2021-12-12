@@ -95,6 +95,7 @@ public class DiscordNet {
 			author.getIdLong() != jda.getSelfUser().getIdLong();
 	}
 
+//player info related functions
 	public static String getPlayerUUID(String name) {
         String url = "https://api.mojang.com/users/profiles/minecraft/"+name;
         try {
@@ -110,22 +111,112 @@ public class DiscordNet {
         return "error";
 	}
 
+	private static String getPlayerName( Player player ) {
+
+		return player.getDisplayName().getString();
+	}
+
+//player related messages
+	//death message parsing
 	public static void sendPlayerDeathMessage( LivingDeathEvent event, String customMessage ) {
 
 		LivingEntity entity = event.getEntityLiving();
 		String name = entity.getDisplayName().getString();
 		if( customMessage.isEmpty() ) {
-			sendDeathMessage(
-				event.getSource()
-					.getLocalizedDeathMessage( entity )
-					.getString()
-					.replace( name, "**" + name + "**" )
-			);
+			sendDeathMessage(event.getSource().getLocalizedDeathMessage( entity ).getString().replace( name, name), name);
 		} else {
-			sendDeathMessage( String.format( "**%s** %s", entity.getDisplayName().getString(), customMessage ) );
+			sendDeathMessage( String.format( "%s %s", entity.getDisplayName().getString(), customMessage ), name );
 		}
 	}
+	//death message sending
+	public static synchronized void sendDeathMessage( String msg, String player ) {
 
+			if( isInitialized() ) {
+				try {
+					EmbedBuilder playerEB = new EmbedBuilder();
+					String uuid = getPlayerUUID(player);
+					String avatar = "https://crafatar.com/avatars/" + uuid;
+					String usrAcct = "https://mcuuid.net/?q=" + uuid;
+
+					playerEB.setAuthor(msg, usrAcct, avatar);
+					playerEB.setColor(new Color(0, 0, 0));
+
+					playerActionsChannel.sendMessage(playerEB.build()).queue();
+					LOGGER.info( "Player Message Sent: MC -> Discord" );
+				} catch( Exception exception ) {
+					LOGGER.error( "Message could not be sent", exception );
+				}
+			}
+		}
+
+		//player joining message
+		public static synchronized void sendPlayerJoinMessage( Player player, String message ) {
+
+			if( isInitialized() ) {
+				try {
+					EmbedBuilder playerEB = new EmbedBuilder();
+					String msg = getPlayerName(player) + " " + message;
+					String uuid = getPlayerUUID(getPlayerName(player));
+					String avatar = "https://crafatar.com/avatars/" + uuid;
+					String usrAcct = "https://mcuuid.net/?q=" + uuid;
+
+					playerEB.setAuthor(msg, usrAcct, avatar);
+					playerEB.setColor(new Color(0, 255, 0));
+
+					playerActionsChannel.sendMessage(playerEB.build()).queue();
+					LOGGER.info( "Player Message Sent: MC -> Discord" );
+				} catch( Exception exception ) {
+					LOGGER.error( "Message could not be sent", exception );
+				}
+			}
+		}
+		//player leaving message
+		public static synchronized void sendPlayerQuitMessage(Player player, String message ) {
+
+			if( isInitialized() ) {
+				try {
+					EmbedBuilder playerEB = new EmbedBuilder();
+					String msg = getPlayerName(player) + " " + message;
+					String uuid = getPlayerUUID(getPlayerName(player));
+					String avatar = "https://crafatar.com/avatars/" + uuid;
+					String usrAcct = "https://mcuuid.net/?q=" + uuid;
+
+					playerEB.setAuthor(msg, usrAcct, avatar);
+					playerEB.setColor(new Color(255, 0, 0));
+
+					playerActionsChannel.sendMessage(playerEB.build()).queue();
+					LOGGER.info( "Player Message Sent: MC -> Discord" );
+				} catch( Exception exception ) {
+					LOGGER.error( "Message could not be sent", exception );
+				}
+			}
+		}
+
+		//player advancement message
+		public static synchronized void sendAdvancementMessage( Player player, String message, String description ) {
+
+			if( isInitialized() ) {
+				try {
+					EmbedBuilder playerEB = new EmbedBuilder();
+					String msg = getPlayerName(player) + " " + message;
+					String uuid = getPlayerUUID(getPlayerName(player));
+					String avatar = "https://crafatar.com/avatars/" + uuid;
+					String usrAcct = "https://mcuuid.net/?q=" + uuid;
+
+					playerEB.setAuthor(msg, usrAcct, avatar);
+					playerEB.setDescription(description);
+					playerEB.setColor(new Color(249, 217, 73));
+
+					advancementsChannel.sendMessage(playerEB.build()).queue();
+					LOGGER.info( "Advancement Message Sent: MC -> Discord" );
+				} catch( Exception exception ) {
+					LOGGER.error( "Message could not be sent", exception );
+				}
+			}
+		}
+
+//other entity related messages
+	//parses pet message
 	public static void sendPetDeathMessage( LivingDeathEvent event, String customMessage ) {
 
 		LivingEntity entity = event.getEntityLiving();
@@ -138,23 +229,39 @@ public class DiscordNet {
 					.replace( name, "**" + name + "**" )
 			);
 		} else {
-			sendPetMessage( String.format( "**%s** %s", entity.getDisplayName().getString(), customMessage ) );
+			sendPetMessage( String.format( "%s %s", entity.getDisplayName().getString(), customMessage ) );
+		}
+	}
+	//sends pet message
+	public static synchronized void sendPetMessage( String msg ) {
+
+		if( isInitialized() ) {
+			try {
+				EmbedBuilder playerEB = new EmbedBuilder();
+
+				playerEB.setAuthor(msg, null, null);
+				playerEB.setColor(new Color(0, 0, 0));
+
+				petChannel.sendMessage(playerEB.build()).queue();
+				LOGGER.info( "Pet Message Sent: MC -> Discord" );
+			} catch( Exception exception ) {
+				LOGGER.error( "Message could not be sent", exception );
+			}
 		}
 	}
 
+//other general messages
 	public static void sendChatMessage( Player player, String message ) {
 
 		sendChatMessage( getPlayerName( player ), message );
 	}
-
-	private static String getPlayerName( Player player ) {
-
-		return player.getDisplayName().getString();
-	}
-
 	public static void sendChatMessage( CommandSourceStack source, Component message ) {
 
 		sendCommandChatMessage( source, message.getString() );
+	}
+	private static void sendChatMessage( String name, String message ) {
+
+		sendMessage( String.format( "**%s** %s", name, message ) );
 	}
 
 	public static void sendMeChatMessage( CommandSourceStack source, String action ) {
@@ -165,11 +272,6 @@ public class DiscordNet {
 	private static void sendCommandChatMessage( CommandSourceStack source, String message ) {
 
 		sendChatMessage( source.getDisplayName().getString(), message );
-	}
-
-	private static void sendChatMessage( String name, String message ) {
-
-		sendMessage( String.format( "**%s** %s", name, message ) );
 	}
 
 	public static void sendFeedbackMessage( String message ) {
@@ -192,98 +294,6 @@ public class DiscordNet {
 				}
 			} catch( Exception exception ) {
 				LOGGER.error( "Chat Message could not be sent", exception );
-			}
-		}
-	}
-	public static synchronized void sendPlayerJoinMessage( Player player, String message ) {
-
-		if( isInitialized() ) {
-			try {
-				EmbedBuilder playerEB = new EmbedBuilder();
-				String msg = getPlayerName(player) + " " + message;
-				String uuid = getPlayerUUID(getPlayerName(player));
-				String avatar = "https://crafatar.com/avatars/" + uuid;
-
-				playerEB.setTitle(msg, null);
-				playerEB.setColor(new Color(0, 255, 0));
-
-				playerActionsChannel.sendMessage(playerEB.build()).queue();
-				LOGGER.info( "Player Message Sent: MC -> Discord" );
-			} catch( Exception exception ) {
-				LOGGER.error( "Message could not be sent", exception );
-			}
-		}
-	}
-public static synchronized void sendDeathMessage( String message ) {
-
-		if( isInitialized() ) {
-			try {
-				EmbedBuilder playerEB = new EmbedBuilder();
-				String msg = message;
-
-				playerEB.setTitle(msg, null);
-				playerEB.setColor(new Color(0, 0, 0));
-
-				playerActionsChannel.sendMessage(playerEB.build()).queue();
-				LOGGER.info( "Player Message Sent: MC -> Discord" );
-			} catch( Exception exception ) {
-				LOGGER.error( "Message could not be sent", exception );
-			}
-		}
-	}
-	public static synchronized void sendPlayerQuitMessage(Player player, String message ) {
-
-		if( isInitialized() ) {
-			try {
-				EmbedBuilder playerEB = new EmbedBuilder();
-				String msg = getPlayerName(player) + " " + message;
-				String uuid = getPlayerUUID(getPlayerName(player));
-				String avatar = "https://crafatar.com/avatars/" + uuid;
-
-				playerEB.setTitle(msg, null);
-				playerEB.setColor(new Color(255, 0, 0));
-
-				playerActionsChannel.sendMessage(playerEB.build()).queue();
-				LOGGER.info( "Player Message Sent: MC -> Discord" );
-			} catch( Exception exception ) {
-				LOGGER.error( "Message could not be sent", exception );
-			}
-		}
-	}
-	public static synchronized void sendAdvancementMessage( Player player, String message, String description ) {
-
-		if( isInitialized() ) {
-			try {
-				EmbedBuilder playerEB = new EmbedBuilder();
-				String msg = "**" + getPlayerName(player) + "** " + message;
-				String uuid = getPlayerUUID(getPlayerName(player));
-				String avatar = "https://crafatar.com/avatars/" + uuid;
-
-				playerEB.setTitle(msg, null);
-				playerEB.setDescription(description);
-				playerEB.setColor(new Color(249, 217, 73));
-
-				advancementsChannel.sendMessage(playerEB.build()).queue();
-				LOGGER.info( "Advancement Message Sent: MC -> Discord" );
-			} catch( Exception exception ) {
-				LOGGER.error( "Message could not be sent", exception );
-			}
-		}
-	}
-	public static synchronized void sendPetMessage( String message ) {
-
-		if( isInitialized() ) {
-			try {
-				EmbedBuilder playerEB = new EmbedBuilder();
-				String msg = message;
-
-				playerEB.setTitle(msg, null);
-				playerEB.setColor(new Color(0, 0, 0));
-
-				petChannel.sendMessage(playerEB.build()).queue();
-				LOGGER.info( "Pet Message Sent: MC -> Discord" );
-			} catch( Exception exception ) {
-				LOGGER.error( "Message could not be sent", exception );
 			}
 		}
 	}

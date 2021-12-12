@@ -121,7 +121,7 @@ public class ForgeEventHandler {
 			DiscordNet.sendAdvancementMessage(
 				event.getPlayer(),
 				String.format(
-					"%s **%s**",
+					"%s %s",
 					ServerConfig.getPlayerGotAdvancementMessage(),
 					displayInfo.getTitle().getString()),
 				String.format("%s", displayInfo.getDescription().getString())
